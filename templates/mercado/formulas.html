@@ -1,0 +1,76 @@
+{% extends 'mercado/base.html' %}
+
+{% block title %}Reglas | Banca Catan{% endblock %}
+
+{% block content %}
+<section class="hero-panel reveal-up">
+    <div>
+        <p class="eyebrow">Marco economico</p>
+        <h2>Reglas del mercado con regresion lineal</h2>
+        <p>
+            Los recursos se compran y venden con dinero. El precio de cada recurso
+            se ajusta segun la demanda observada y el modelo lineal definido en la propuesta.
+        </p>
+    </div>
+</section>
+
+<section class="formula-cards reveal-up">
+    <article class="formula-card">
+        <h3>Demanda estimada</h3>
+        <p><strong>Q estimada = a + bP</strong></p>
+        <p>
+            a representa demanda base y b la sensibilidad ante cambios de precio.
+        </p>
+    </article>
+
+    <article class="formula-card">
+        <h3>Demanda real por operacion</h3>
+        <p><strong>Compra: +cantidad | Venta: -cantidad</strong></p>
+        <p>
+            Las compras suben demanda efectiva y las ventas la reducen.
+        </p>
+    </article>
+
+    <article class="formula-card">
+        <h3>Comparacion de demanda</h3>
+        <p><strong>Delta Q = Q real - Q estimada</strong></p>
+        <p>
+            Si Delta Q &gt; 0 hay presion de demanda; si Delta Q &lt; 0 el mercado se enfria.
+        </p>
+    </article>
+
+    <article class="formula-card">
+        <h3>Ajuste de precio</h3>
+        <p><strong>P nuevo = P actual + k * Delta Q</strong></p>
+        <p>
+            k es el factor de ajuste configurado en cada operacion.
+        </p>
+    </article>
+
+    <article class="formula-card">
+        <h3>Recalculo del modelo</h3>
+        <p><strong>Cada 5 turnos por recurso</strong></p>
+        <p>
+            En los turnos 5, 10, 15... se recalculan a y b con regresion lineal simple.
+        </p>
+    </article>
+
+    <article class="formula-card">
+        <h3>Validaciones monetarias</h3>
+        <p><strong>Saldo e inventario deben alcanzar</strong></p>
+        <p>
+            Para comprar se exige saldo; para vender se exige inventario suficiente.
+        </p>
+    </article>
+</section>
+
+<section class="notes-panel reveal-up">
+    <h3>Recomendaciones de uso</h3>
+    <ul>
+        <li>Configura primero jugadores y precios base de recursos.</li>
+        <li>Registra compras y ventas en la vista Mercado para alimentar la regresion.</li>
+        <li>Usa transferencias para pagos directos entre jugadores.</li>
+        <li>Revisa historial para analizar comportamiento de precios por turnos.</li>
+    </ul>
+</section>
+{% endblock %}

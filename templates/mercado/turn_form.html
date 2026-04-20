@@ -1,0 +1,86 @@
+{% extends 'mercado/base.html' %}
+
+{% block title %}Mercado | Banca Catan{% endblock %}
+
+{% block content %}
+<section class="hero-panel reveal-up">
+    <div>
+        <p class="eyebrow">Operacion de mercado</p>
+        <h2>Comprar o vender recursos con dinero</h2>
+        <p>
+            Cada operacion usa el precio actual del recurso. Despues se calcula
+            la demanda estimada, el Delta Q y el nuevo precio con regresion lineal.
+        </p>
+    </div>
+</section>
+
+<section class="form-panel reveal-up">
+    <form method="post" class="turn-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="field-block">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="field-errors">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="cta-button">Registrar operacion</button>
+    </form>
+</section>
+
+<section class="table-panel reveal-up">
+    <div class="panel-head">
+        <h3>Operaciones recientes de recursos</h3>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Turno</th>
+                    <th>Jugador</th>
+                    <th>Recurso</th>
+                    <th>Operacion</th>
+                    <th>Cantidad</th>
+                    <th>Precio unidad</th>
+                    <th>Monto</th>
+                    <th>Delta Q</th>
+                    <th>Precio aplicado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in recent_trades %}
+                    <tr>
+                        <td>{{ trade.turn_number }}</td>
+                        <td>{{ trade.player.name }}</td>
+                        <td>{{ trade.resource.name }}</td>
+                        <td>{{ trade.get_trade_type_display }}</td>
+                        <td>{{ trade.quantity|floatformat:3 }}</td>
+                        <td>${{ trade.unit_price|floatformat:2 }}</td>
+                        <td>${{ trade.total_value|floatformat:2 }}</td>
+                        <td class="{% if trade.delta_q > 0 %}delta-up{% elif trade.delta_q < 0 %}delta-down{% endif %}">
+                            {{ trade.delta_q|floatformat:3 }}
+                        </td>
+                        <td>${{ trade.applied_price|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="9">No hay operaciones recientes.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

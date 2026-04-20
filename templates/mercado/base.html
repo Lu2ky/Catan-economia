@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Banca Catan{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'mercado/styles.css' %}">
+</head>
+<body>
+    <div class="ambient-shape ambient-shape-a"></div>
+    <div class="ambient-shape ambient-shape-b"></div>
+
+    <header class="topbar">
+        <div class="brand-wrap">
+            <div class="brand-emblem">CATAN</div>
+            <div>
+                <h1 class="brand-title">Banca de Jugadores</h1>
+                <p class="brand-subtitle">Dinero por jugador y mercado dinamico de recursos</p>
+            </div>
+        </div>
+
+        <nav class="main-nav">
+            <a href="{% url 'mercado:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Panel</a>
+            <a href="{% url 'mercado:setup' %}" class="{% if request.resolver_match.url_name == 'setup' %}is-active{% endif %}">Jugadores</a>
+            <a href="{% url 'mercado:market_trade' %}" class="{% if request.resolver_match.url_name == 'market_trade' or request.resolver_match.url_name == 'register_turn' %}is-active{% endif %}">Mercado</a>
+            <a href="{% url 'mercado:new_transfer' %}" class="{% if request.resolver_match.url_name == 'new_transfer' %}is-active{% endif %}">Transferir</a>
+            <a href="{% url 'mercado:history' %}" class="{% if request.resolver_match.url_name == 'history' %}is-active{% endif %}">Historial</a>
+            <a href="{% url 'mercado:rules' %}" class="{% if request.resolver_match.url_name == 'rules' or request.resolver_match.url_name == 'formulas' %}is-active{% endif %}">Reglas</a>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        {% if messages %}
+            <section class="feedback-stack">
+                {% for message in messages %}
+                    <article class="feedback-item {{ message.tags }}">{{ message }}</article>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer-note">
+        <p>CATAN - Mercado de recursos con regresion lineal y cuentas monetarias por jugador.</p>
+    </footer>
+</body>
+</html>

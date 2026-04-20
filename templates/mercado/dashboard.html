@@ -1,0 +1,208 @@
+{% extends 'mercado/base.html' %}
+
+{% block title %}Panel | Banca Catan{% endblock %}
+
+{% block content %}
+<section class="hero-panel reveal-up">
+    <div>
+        <p class="eyebrow">Estado del juego</p>
+        <h2>Mercado de recursos y cuentas de dinero</h2>
+        <p>
+            Los jugadores compran y venden recursos con dinero. El precio de cada
+            recurso se ajusta segun la demanda observada usando regresion lineal.
+        </p>
+    </div>
+    <div class="hero-actions">
+        <a class="cta-button" href="{% url 'mercado:market_trade' %}">Nueva operacion de mercado</a>
+        <a class="cta-button" href="{% url 'mercado:new_transfer' %}">Nueva transferencia</a>
+    </div>
+</section>
+
+<section class="kpi-grid reveal-up">
+    <article class="kpi-card">
+        <h3>Total de jugadores</h3>
+        <p>{{ total_players }}</p>
+    </article>
+    <article class="kpi-card">
+        <h3>Dinero total</h3>
+        <p>${{ total_money|floatformat:2 }}</p>
+    </article>
+    <article class="kpi-card">
+        <h3>Total transferencias</h3>
+        <p>{{ total_transfers }}</p>
+    </article>
+    <article class="kpi-card">
+        <h3>Total operaciones mercado</h3>
+        <p>{{ total_market_ops }}</p>
+    </article>
+</section>
+
+<section class="resource-grid reveal-up">
+    {% for resource in resources %}
+        <article class="resource-card">
+            <header>
+                <h3>{{ resource.name }}</h3>
+                <span class="price-tag">${{ resource.current_price|floatformat:2 }}</span>
+            </header>
+
+            <div class="resource-meta">
+                <p><strong>Precio base:</strong> ${{ resource.base_price|floatformat:2 }}</p>
+                <p>
+                    <strong>Tendencia:</strong>
+                    <span class="status-pill trend-{{ resource.trend|lower }}">{{ resource.get_trend_display }}</span>
+                </p>
+                <p>
+                    <strong>Demanda:</strong>
+                    <span class="status-pill demand-{{ resource.demand_status|lower }}">{{ resource.get_demand_status_display }}</span>
+                </p>
+            </div>
+
+            <div class="formula-params">
+                <p>Q estimada = a + bP</p>
+                <p>a = {{ resource.regression_a|floatformat:4 }}</p>
+                <p>b = {{ resource.regression_b|floatformat:4 }}</p>
+            </div>
+        </article>
+    {% empty %}
+        <article class="empty-state">
+            <p>No hay recursos configurados.</p>
+            <a class="cta-button" href="{% url 'mercado:setup' %}">Ir a configuracion</a>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="table-panel reveal-up">
+    <div class="panel-head">
+        <h3>Cuentas de jugadores</h3>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Jugador</th>
+                    <th>Saldo</th>
+                    <th>Actualizado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                    <tr>
+                        <td>{{ player.name }}</td>
+                        <td>${{ player.balance|floatformat:2 }}</td>
+                        <td>{{ player.updated_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3">No hay jugadores creados aun.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="table-panel reveal-up">
+    <div class="panel-head">
+        <h3>Inventario por jugador</h3>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Jugador</th>
+                    <th>Recurso</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for holding in holdings %}
+                    <tr>
+                        <td>{{ holding.player.name }}</td>
+                        <td>{{ holding.resource.name }}</td>
+                        <td>{{ holding.quantity|floatformat:3 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3">No hay inventario de recursos registrado aun.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="table-panel reveal-up">
+    <div class="panel-head">
+        <h3>Ultimas operaciones de mercado</h3>
+        <a href="{% url 'mercado:history' %}">Ver historial completo</a>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Turno</th>
+                    <th>Jugador</th>
+                    <th>Recurso</th>
+                    <th>Operacion</th>
+                    <th>Cantidad</th>
+                    <th>Precio unidad</th>
+                    <th>Monto</th>
+                    <th>Delta Q</th>
+                    <th>Precio aplicado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in recent_trades %}
+                    <tr>
+                        <td>{{ trade.turn_number }}</td>
+                        <td>{{ trade.player.name }}</td>
+                        <td>{{ trade.resource.name }}</td>
+                        <td>{{ trade.get_trade_type_display }}</td>
+                        <td>{{ trade.quantity|floatformat:3 }}</td>
+                        <td>${{ trade.unit_price|floatformat:2 }}</td>
+                        <td>${{ trade.total_value|floatformat:2 }}</td>
+                        <td class="{% if trade.delta_q > 0 %}delta-up{% elif trade.delta_q < 0 %}delta-down{% endif %}">
+                            {{ trade.delta_q|floatformat:3 }}
+                        </td>
+                        <td>${{ trade.applied_price|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="9">No hay operaciones de mercado todavia.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="table-panel reveal-up">
+    <div class="panel-head">
+        <h3>Ultimas transferencias de dinero</h3>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Monto</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transfer in recent_transfers %}
+                    <tr>
+                        <td>{{ transfer.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ transfer.from_account.name }}</td>
+                        <td>{{ transfer.to_account.name }}</td>
+                        <td>${{ transfer.amount|floatformat:2 }}</td>
+                        <td>{% if transfer.description %}{{ transfer.description }}{% else %}Sin detalle{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">No hay transferencias de dinero todavia.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

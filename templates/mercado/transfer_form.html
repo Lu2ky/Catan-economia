@@ -1,0 +1,76 @@
+{% extends 'mercado/base.html' %}
+
+{% block title %}Transferir dinero | Banca Catan{% endblock %}
+
+{% block content %}
+<section class="hero-panel reveal-up">
+    <div>
+        <p class="eyebrow">Movimiento de dinero</p>
+        <h2>Transferir entre cuentas de jugadores</h2>
+        <p>
+            Esta operacion mueve saldo directo de un jugador a otro, sin afectar
+            el precio de recursos en el mercado.
+        </p>
+    </div>
+</section>
+
+<section class="form-panel reveal-up">
+    <form method="post" class="turn-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="field-block">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="field-errors">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="cta-button">Ejecutar transferencia</button>
+    </form>
+</section>
+
+<section class="table-panel reveal-up">
+    <div class="panel-head">
+        <h3>Transferencias recientes</h3>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Monto</th>
+                    <th>Detalle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transfer in recent_transfers %}
+                    <tr>
+                        <td>{{ transfer.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ transfer.from_account.name }}</td>
+                        <td>{{ transfer.to_account.name }}</td>
+                        <td>${{ transfer.amount|floatformat:2 }}</td>
+                        <td>{% if transfer.description %}{{ transfer.description }}{% else %}Sin detalle{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">No hay transferencias recientes.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
