@@ -39,6 +39,44 @@ def ensure_default_resources():
         )
 
 
+@transaction.atomic
+def reset_game_state():
+    """Reset the economy state to a clean game start."""
+    ResourceTrade.objects.all().delete()
+    MoneyTransfer.objects.all().delete()
+    PlayerResourceHolding.objects.all().delete()
+    PlayerAccount.objects.all().delete()
+
+    default_resource_names = list(DEFAULT_RESOURCE_MARKET.keys())
+    Resource.objects.exclude(name__in=default_resource_names).delete()
+    ensure_default_resources()
+
+    resources_by_name = {
+        resource.name: resource
+        for resource in Resource.objects.filter(name__in=default_resource_names)
+    }
+
+    for name, base_price in DEFAULT_RESOURCE_MARKET.items():
+        resource = resources_by_name[name]
+        resource.base_price = base_price
+        resource.current_price = base_price
+        resource.demand_status = Resource.DEMAND_STABLE
+        resource.trend = Resource.TREND_STABLE
+        resource.regression_a = 0
+        resource.regression_b = 0
+        resource.save(
+            update_fields=[
+                "base_price",
+                "current_price",
+                "demand_status",
+                "trend",
+                "regression_a",
+                "regression_b",
+                "updated_at",
+            ]
+        )
+
+
 def simple_linear_regression(samples):
     if not samples:
         return 0.0, 0.0

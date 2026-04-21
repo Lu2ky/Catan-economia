@@ -7,7 +7,7 @@
     <title>{% block title %}Banca Catan{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'mercado/styles.css' %}">
 </head>
 <body>
@@ -24,6 +24,7 @@
         </div>
 
         <nav class="main-nav">
+            <a href="{% url 'mercado:start' %}" class="{% if request.resolver_match.url_name == 'start' %}is-active{% endif %}">Inicio</a>
             <a href="{% url 'mercado:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Panel</a>
             <a href="{% url 'mercado:setup' %}" class="{% if request.resolver_match.url_name == 'setup' %}is-active{% endif %}">Jugadores</a>
             <a href="{% url 'mercado:market_trade' %}" class="{% if request.resolver_match.url_name == 'market_trade' or request.resolver_match.url_name == 'register_turn' %}is-active{% endif %}">Mercado</a>

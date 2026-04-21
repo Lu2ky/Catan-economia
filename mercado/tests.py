@@ -3,7 +3,12 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 
 from .models import MoneyTransfer, PlayerAccount, PlayerResourceHolding, Resource, ResourceTrade
-from .services import register_resource_trade, register_transfer
+from .services import (
+    DEFAULT_RESOURCE_MARKET,
+    register_resource_trade,
+    register_transfer,
+    reset_game_state,
+)
 
 
 class MoneyTransferServiceTests(TestCase):
@@ -165,3 +170,59 @@ class MarketTradeServiceTests(TestCase):
         self.assertTrue(model_recalculated)
         self.assertTrue(trade.model_recalculated)
         self.assertNotEqual(self.resource.regression_b, 0.0)
+
+
+class GameResetServiceTests(TestCase):
+    def setUp(self):
+        self.player_a = PlayerAccount.objects.create(
+            name="Jugador Uno",
+            balance=Decimal("180.00"),
+        )
+        self.player_b = PlayerAccount.objects.create(
+            name="Jugador Dos",
+            balance=Decimal("120.00"),
+        )
+        self.resource = Resource.objects.create(
+            name="Madera",
+            base_price=Decimal("6.00"),
+            current_price=Decimal("7.20"),
+            demand_status=Resource.DEMAND_HIGH,
+            trend=Resource.TREND_UP,
+            regression_a=1.5,
+            regression_b=0.4,
+        )
+
+    def test_reset_game_state_clears_history_and_restores_default_resources(self):
+        register_transfer(
+            from_account=self.player_a,
+            to_account=self.player_b,
+            amount=Decimal("15.00"),
+            description="Transferencia inicial",
+        )
+        register_resource_trade(
+            player=self.player_a,
+            resource=self.resource,
+            trade_type=ResourceTrade.TRADE_BUY,
+            quantity=2,
+            adjustment_factor=0.2,
+        )
+
+        reset_game_state()
+
+        self.assertEqual(PlayerAccount.objects.count(), 0)
+        self.assertEqual(PlayerResourceHolding.objects.count(), 0)
+        self.assertEqual(MoneyTransfer.objects.count(), 0)
+        self.assertEqual(ResourceTrade.objects.count(), 0)
+
+        self.assertEqual(
+            set(Resource.objects.values_list("name", flat=True)),
+            set(DEFAULT_RESOURCE_MARKET.keys()),
+        )
+        for resource_name, default_price in DEFAULT_RESOURCE_MARKET.items():
+            resource = Resource.objects.get(name=resource_name)
+            self.assertEqual(resource.base_price, default_price)
+            self.assertEqual(resource.current_price, default_price)
+            self.assertEqual(resource.demand_status, Resource.DEMAND_STABLE)
+            self.assertEqual(resource.trend, Resource.TREND_STABLE)
+            self.assertEqual(resource.regression_a, 0)
+            self.assertEqual(resource.regression_b, 0)

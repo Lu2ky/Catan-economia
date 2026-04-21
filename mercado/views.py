@@ -16,6 +16,7 @@ from .models import MoneyTransfer, PlayerAccount, PlayerResourceHolding, Resourc
 from .services import (
     DEFAULT_RESOURCE_MARKET,
     ensure_default_resources,
+    reset_game_state,
     register_resource_trade,
     register_transfer,
 )
@@ -23,6 +24,35 @@ from .services import (
 
 def _has_players():
     return PlayerAccount.objects.exists()
+
+
+def start_panel(request):
+    ensure_default_resources()
+
+    if request.method == "POST" and request.POST.get("action") == "new_game":
+        reset_game_state()
+        messages.success(
+            request,
+            "Nueva partida creada. Configura jugadores y precios base para comenzar.",
+        )
+        return redirect("mercado:setup")
+
+    player_count = PlayerAccount.objects.count()
+    trade_count = ResourceTrade.objects.count()
+    transfer_count = MoneyTransfer.objects.count()
+    total_money = PlayerAccount.objects.aggregate(total=Sum("balance"))["total"] or 0
+
+    return render(
+        request,
+        "mercado/start.html",
+        {
+            "has_progress": any([player_count, trade_count, transfer_count]),
+            "player_count": player_count,
+            "trade_count": trade_count,
+            "transfer_count": transfer_count,
+            "total_money": total_money,
+        },
+    )
 
 
 def setup_game(request):

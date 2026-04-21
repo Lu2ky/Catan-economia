@@ -5,7 +5,8 @@ from . import views
 app_name = "mercado"
 
 urlpatterns = [
-    path("", views.dashboard, name="dashboard"),
+    path("", views.start_panel, name="start"),
+    path("panel/", views.dashboard, name="dashboard"),
     path("configuracion/", views.setup_game, name="setup"),
     path("mercado/operacion/", views.market_trade_view, name="market_trade"),
     path("transferencias/nueva/", views.transfer_money_view, name="new_transfer"),

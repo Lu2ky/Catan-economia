@@ -1,0 +1,65 @@
+{% extends 'mercado/base.html' %}
+
+{% block title %}Inicio | Banca Catan{% endblock %}
+
+{% block content %}
+<section class="start-panel reveal-up">
+    <div>
+        <p class="eyebrow">Inicio de partida</p>
+        <h2>Comienza una nueva partida de economia Catan</h2>
+        <p>
+            Este panel reinicia la banca y el mercado para arrancar desde cero.
+            Al iniciar una nueva partida se borran jugadores, transferencias,
+            operaciones y turnos anteriores.
+        </p>
+    </div>
+
+    <div class="hero-actions">
+        <form method="post" class="inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="new_game">
+            <button
+                type="submit"
+                class="cta-button cta-danger"
+                onclick="return confirm('Se borrara la partida actual y se iniciara una nueva desde cero. Deseas continuar?');"
+            >
+                Nueva partida
+            </button>
+        </form>
+
+        <a class="cta-button secondary" href="{% url 'mercado:setup' %}">Configurar jugadores</a>
+        {% if has_progress %}
+            <a class="cta-button ghost" href="{% url 'mercado:dashboard' %}">Continuar partida actual</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="kpi-grid reveal-up">
+    <article class="kpi-card">
+        <h3>Jugadores activos</h3>
+        <p>{{ player_count }}</p>
+    </article>
+    <article class="kpi-card">
+        <h3>Dinero total</h3>
+        <p>${{ total_money|floatformat:2 }}</p>
+    </article>
+    <article class="kpi-card">
+        <h3>Operaciones mercado</h3>
+        <p>{{ trade_count }}</p>
+    </article>
+    <article class="kpi-card">
+        <h3>Transferencias</h3>
+        <p>{{ transfer_count }}</p>
+    </article>
+</section>
+
+<section class="notes-panel reveal-up">
+    <h3>Flujo recomendado</h3>
+    <ul>
+        <li>Haz clic en Nueva partida para limpiar el estado anterior.</li>
+        <li>Configura jugadores y precios base del mercado.</li>
+        <li>Registra operaciones y transferencias para avanzar turnos.</li>
+        <li>Consulta el panel e historial para seguir el comportamiento del mercado.</li>
+    </ul>
+</section>
+{% endblock %}
